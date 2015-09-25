@@ -1,0 +1,29 @@
+{
+  "name": "servicebus-register-handlers",
+  "version": "0.0.0",
+  "description": "module for registering all servicebus handlers in a folder, according to convention",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mateodelnorte/servicebus-register-handlers.git"
+  },
+  "keywords": [
+    "servicebus",
+    "bus",
+    "handlers"
+  ],
+  "author": "mateodelnorte",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mateodelnorte/servicebus-register-handlers/issues"
+  },
+  "homepage": "https://github.com/mateodelnorte/servicebus-register-handlers",
+  "dependencies": {
+    "debug": "^2.2.0",
+    "extend": "^3.0.0",
+    "objectify-folder": "0.0.0"
+  }
+}
