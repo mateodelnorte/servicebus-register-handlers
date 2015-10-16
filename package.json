@@ -1,6 +1,6 @@
 {
   "name": "servicebus-register-handlers",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "module for registering all servicebus handlers in a folder, according to convention",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/mateodelnorte/servicebus-register-handlers",
   "dependencies": {
+    "async": "^1.4.2",
     "debug": "^2.2.0",
     "extend": "^3.0.0",
     "objectify-folder": "0.0.0"
