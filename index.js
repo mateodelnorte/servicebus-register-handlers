@@ -103,7 +103,13 @@ module.exports = function (options) {
       trace('handling message: %j', msg);
 
       async.map(thisModule, function (m, cb) {
-        m[method].call(context, msg, cb);
+        try {
+          m[method].call(context, msg, cb);
+        } catch (err) {
+          if (err) return (options.handleError || handleError).call(context, msg, err);
+          if (firstOrOnlyMod.ack) msg.handle.ack();
+          trace('handled message: %j', msg);
+        }
       }, function (err) {
         if (err) return (options.handleError || handleError).call(context, msg, err);
         if (firstOrOnlyMod.ack) msg.handle.ack();
