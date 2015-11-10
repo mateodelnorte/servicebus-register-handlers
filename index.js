@@ -102,7 +102,7 @@ module.exports = function (options) {
 
       trace('handling message: %j', msg);
 
-      process.domain.once('error', handleError.bind(handleError, msg));
+      if (process.domain) process.domain.once('error', handleError.bind(handleError, msg));
 
       async.map(thisModule, function (m, cb) {
         try {
