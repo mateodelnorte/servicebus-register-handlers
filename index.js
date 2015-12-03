@@ -21,7 +21,7 @@ function prepareOptions (options) {
     options.handlers = objectifyFolder({
       fn: function (mod, result) {
 
-        if ( ! mod.queueName || ! (mod.listen || mod.subscribe)) return;
+        if ( ! (mod.queueName || mod.routingKey) || ! (mod.listen || mod.subscribe)) return;
 
         var key = (mod.listen ? 'listen.' : 'subscribe.') + (mod.routingKey === undefined ? mod.queueName : mod.routingKey);
 
@@ -67,7 +67,7 @@ module.exports = function (options) {
 
     var rk = method === 'subscribe' ?
       (firstOrOnlyMod.queueName) ? firstOrOnlyMod.queueName :
-        (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-.%s', routingKey) : routingKey) :
+        (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-%s', routingKey) : routingKey) :
           routingKey || firstOrOnlyMod.queueName;
 
     debug('%sing to %s', method === 'subscribe' ? method.slice(0, -1) : method, rk);
