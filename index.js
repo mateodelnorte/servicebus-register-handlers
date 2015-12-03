@@ -67,7 +67,7 @@ module.exports = function (options) {
 
     var rk = method === 'subscribe' ?
       (firstOrOnlyMod.queueName) ? firstOrOnlyMod.queueName :
-        (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-.%s', routingKey) : routingKey) :
+        (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-%s', routingKey) : routingKey) :
           routingKey || firstOrOnlyMod.queueName;
 
     debug('%sing to %s', method === 'subscribe' ? method.slice(0, -1) : method, rk);
