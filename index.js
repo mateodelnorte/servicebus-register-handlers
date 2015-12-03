@@ -21,7 +21,7 @@ function prepareOptions (options) {
     options.handlers = objectifyFolder({
       fn: function (mod, result) {
 
-        if ( ! mod.queueName || ! (mod.listen || mod.subscribe)) return;
+        if ( ! (mod.queueName || mod.routingKey) || ! (mod.listen || mod.subscribe)) return;
 
         var key = (mod.listen ? 'listen.' : 'subscribe.') + (mod.routingKey === undefined ? mod.queueName : mod.routingKey);
 
