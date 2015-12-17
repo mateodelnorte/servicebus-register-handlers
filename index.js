@@ -25,7 +25,7 @@ function prepareOptions (options) {
 
         var key = (mod.listen ? 'listen.' : 'subscribe.') + (mod.routingKey === undefined ? mod.queueName : mod.routingKey);
 
-        if (mod.where) {
+        if (mod.where || mod.type) {
 
           if ( ! result[key]) {
             result[key] = [];
@@ -33,7 +33,14 @@ function prepareOptions (options) {
 
           if (mod.where && typeof mod.where !== 'function') throw new Error('module.exports.where must be of type function and return a boolean statement');
 
-          result[key].push(mod);
+          try {
+            result[key].push(mod);
+          } catch (err) {
+            if (err.message === 'result[key].push is not a function') {
+              throw new Error(util.format('Error creating module %s. Another module may exist on its queue or routingKey, but without a required type or where export.', key));
+            }
+            else throw err;
+          }
 
         } else {
           result[key] = mod;
@@ -92,13 +99,16 @@ module.exports = function (options) {
 
       if (thisModule instanceof Array) {
         thisModule = thisModule.filter(function (m) {
-          return m.where(msg);
+          return m.type === msg.type || (m.where && m.where(msg));
         });
       } else {
         thisModule = [thisModule];
       }
 
-      if (thisModule.length === 0 && firstOrOnlyMod.ack) msg.handle.reject();
+      if (thisModule.length === 0) {
+        if (firstOrOnlyMod.ack) msg.handle.reject();
+        else return;
+      }
 
       trace('handling message: %j', msg);
 
@@ -109,8 +119,9 @@ module.exports = function (options) {
           m[method].call(context, msg, cb);
         } catch (err) {
           if (err) return (options.handleError || handleError).call(context, msg, err);
-          if (firstOrOnlyMod.ack) msg.handle.ack();
-          trace('handled message: %j', msg);
+          trace('handled message with error: %j', msg);
+          if (firstOrOnlyMod.ack) return msg.handle.ack(cb);
+          else cb();
         }
       }, function (err) {
         if (err) return (options.handleError || handleError).call(context, msg, err);
