@@ -77,6 +77,8 @@ module.exports = function (options) {
         (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-%s', routingKey) : routingKey) :
           routingKey || firstOrOnlyMod.queueName;
 
+    if (method === 'subscribe' && bus.pubsubqueues[rk] !== undefined) return; // do not subscribe to a single fanout queue more than once
+
     debug('%sing to %s', method === 'subscribe' ? method.slice(0, -1) : method, rk);
 
     function handleError (msg, err) {
@@ -106,8 +108,9 @@ module.exports = function (options) {
       }
 
       if (thisModule.length === 0) {
+        warn('no handler registered to handle %j', msg);
         if (firstOrOnlyMod.ack) msg.handle.reject();
-        else return;
+        return;
       }
 
       trace('handling message: %j', msg);
