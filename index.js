@@ -8,132 +8,207 @@ var trace = require('debug')('register-handlers:trace');
 var util = require('util');
 var warn = require('debug')('register-handlers:warn');
 
+function QueuePipeline (options) {
+  this.handlers = [];
+  this.queueName = options.queueName;
+  this.size = 0;
+}
+
+QueuePipeline.prototype.push = function (handler) {
+  this.size++;
+  return this.handlers.push(handler);
+};
+
+function RoutingKeyPipeline (options) {
+  this.handlers = [];
+  this.routingKey = options.routingKey;
+  this.size = 0;
+}
+
+RoutingKeyPipeline.prototype.push = function (handler) {
+  this.size++;
+  return this.handlers.push(handler);
+};
+
+function Handler (options) {
+
+  if (options.where && typeof options.where !== 'function') throw new Error('module.exports.where must be of type function and return a boolean statement');
+  if (options.listen && ! options.queueName) throw new Error('module.exports.listen must be accompanied by a module.exports.queueName specification.')
+  if (options.subscribe && ! options.routingKey) throw new Error('module.exports.subscribe must be accompanied by a module.exports.routingKey specification.')
+  if (options.listen && options.subscribe) throw new Error('module.exports.listen and module.exports.subscribe cannot both be specified on a handler.')
+
+  this.ack = options.ack;
+  this.listen = options.listen;
+  this.queueName = options.queueName;
+  this.routingKey = options.routingKey || options.queueName;
+  this.subscribe = options.subscribe;
+  this.type = options.type;
+  this.where = options.where;
+}
+
+function addHandler (pipelines, handler) {
+  if (handlerIsOrSharesListenQueue(handler)) {
+    if ( ! pipelines[handler.queueName]) pipelines[handler.queueName] = new QueuePipeline({ queueName: handler.queueName });
+    pipelines[handler.queueName].push(handler);
+  } else {
+    if ( ! pipelines[handler.routingKey]) pipelines[handler.routingKey] = new RoutingKeyPipeline({ routingKey: handler.routingKey });
+    pipelines[handler.routingKey].push(handler);
+  }
+}
+
+function handlerIsOrSharesListenQueue (handler) {
+  return handler.listen || (handler.subscribe && handler.queueName);
+};
+
 function prepareOptions (options) {
   options = options || {};
-
-  if ( ! options.bus) throw new Error('register-handlers requires in initialized bus variable');
-
-  this.bus = options.bus;
+  options.pipelines = {};
 
   if ( ! options.handlers && ! options.path) throw new Error('register-handlers requires a folder path or object of required modules');
 
   if (options.path) {
-    options.handlers = objectifyFolder({
+    var i = 0;
+    var handlers = objectifyFolder({
       fn: function (mod, result) {
-
         if ( ! (mod.queueName || mod.routingKey) || ! (mod.listen || mod.subscribe)) return;
-
-        var key = (mod.listen ? 'listen.' : 'subscribe.') + (mod.routingKey === undefined ? mod.queueName : mod.routingKey);
-
-        if (mod.where || mod.type) {
-
-          if ( ! result[key]) {
-            result[key] = [];
-          }
-
-          if (mod.where && typeof mod.where !== 'function') throw new Error('module.exports.where must be of type function and return a boolean statement');
-
-          try {
-            result[key].push(mod);
-          } catch (err) {
-            if (err.message === 'result[key].push is not a function') {
-              throw new Error(util.format('Error creating module %s. Another module may exist on its queue or routingKey, but without a required type or where export.', key));
-            }
-            else throw err;
-          }
-
-        } else {
-          result[key] = mod;
-        }
-
+        addHandler(options.pipelines, new Handler(mod));
       },
       path: options.path
+    });
+
+  } else if (options.handlers) {
+    options.handlers.forEach(function (handler) {
+      addHandler(options.pipelines, handler);
     });
   }
 
   return options;
 }
 
-module.exports = function (options) {
+function registerPipeline (options, pipeline) {
 
-  prepareOptions(options);
+  var bus = options.bus;
 
-  var self = this;
+  var firstHandler = pipeline.handlers[0];
 
-  Object.keys(options.handlers).forEach(function (key) {
+  var isAck = firstHandler.ack;
+  var isListen = firstHandler.listen !== undefined;
+  var hasQueueNameSpecified = firstHandler.queueName !== undefined;
+  var hasRoutingKeySpecified = firstHandler.routingKey !== undefined;
+  var hasTypeSpecified = firstHandler.type !== undefined;
+  var hasWhereSpecified = firstHandler.where !== undefined;
 
-    var mod = options.handlers[key];
+  var method = (isListen) ? 'listen' : 'subscribe';
+  var queueName = hasQueueNameSpecified ? firstHandler.queueName :
+        options.queuePrefix !== undefined ? util.format('%s-', queueName) : firstHandler.routingKey;
 
-    if ( ! (mod.routingKey || mod.queueName) && ! (mod instanceof Array)) return;
+  var queueName = firstHandler.queueName;
 
-    var firstOrOnlyMod = ((mod instanceof Array) ? mod[0] : mod);
+  var queueName = ! isListen ?
+    (firstHandler.queueName) ? firstHandler.queueName :
+      (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-%s', firstHandler.routingKey) : firstHandler.routingKey) :
+        firstHandler.routingKey || firstHandler.queueName;
 
-    var handler =  firstOrOnlyMod.listen || firstOrOnlyMod.subscribe;
-    var method = firstOrOnlyMod.subscribe ? 'subscribe' : 'listen';
-    var routingKey = firstOrOnlyMod.routingKey;
+  function handleError (msg, err) {
+    debug('error handling message with cid ', msg.cid);
+    debug(err.stack || err.message || err);
+    if (firstOrOnlyMod.ack) msg.handle.reject(function () {
+      throw err;
+    });
+  }
 
-    var rk = method === 'subscribe' ?
-      (firstOrOnlyMod.queueName) ? firstOrOnlyMod.queueName :
-        (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-%s', routingKey) : routingKey) :
-          routingKey || firstOrOnlyMod.queueName;
+  function handleIncomingMessage (pipeline, msg, message) {
 
-    if (method === 'subscribe' && bus.pubsubqueues[rk] !== undefined) return; // do not subscribe to a single fanout queue more than once
+    var context = {
+      queueName: message.fields.queueName,
+      routingKey: message.fields.routingKey,
+      correlationId: message.properties.correlationId
+    };
 
-    debug('%sing to %s', method === 'subscribe' ? method.slice(0, -1) : method, rk);
+    var handlers;
 
-    function handleError (msg, err) {
-      debug('error handling message with cid ', msg.cid);
-      debug(err.stack || err.message || err);
-      if (firstOrOnlyMod.ack) msg.handle.reject(function () {
-        throw err;
+    if (pipeline.size > 1) {
+      handlers = pipeline.handlers.filter(function (handler) {
+        return handler.routingKey === msg.type ||
+               (handler.type !== undefined && handler.type === msg.type) ||
+               (handler.where !== undefined && handler.where && handler.where(msg));
       });
+    } else {
+      handlers = pipeline.handlers;
     }
 
-    self.bus[method](rk, firstOrOnlyMod, function (msg, message) {
+    if (handlers.length === 0) {
+      warn('no handler registered to handle %j', msg);
+      if (isAck) msg.handle.ack();
+      return;
+    }
 
-      var thisModule = mod;
+    trace('handling message: %j', msg);
 
-      var context = {
-        queueName: message.fields.queueName,
-        routingKey: message.fields.routingKey,
-        correlationId: message.properties.correlationId
-      };
+    if (process.domain) process.domain.once('error', (options.handleError || handleError).bind(context, msg));
 
-      if (thisModule instanceof Array) {
-        thisModule = thisModule.filter(function (m) {
-          return m.type === msg.type || (m.where && m.where(msg));
-        });
-      } else {
-        thisModule = [thisModule];
-      }
-
-      if (thisModule.length === 0) {
-        warn('no handler registered to handle %j', msg);
-        if (firstOrOnlyMod.ack) msg.handle.ack();
-        return;
-      }
-
-      trace('handling message: %j', msg);
-
-      if (process.domain) process.domain.once('error', (options.handleError || handleError).bind(context, msg));
-
-      async.map(thisModule, function (m, cb) {
-        try {
-          m[method].call(context, msg, cb);
-        } catch (err) {
-          if (err) return (options.handleError || handleError).call(context, msg, err);
-          trace('handled message with error: %j', msg);
-          if (firstOrOnlyMod.ack) return msg.handle.ack(cb);
-          else cb();
-        }
-      }, function (err) {
+    async.map(handlers, function (handler, cb) {
+      try {
+        handler[method].call(context, msg, cb);
+      } catch (err) {
         if (err) return (options.handleError || handleError).call(context, msg, err);
-        if (firstOrOnlyMod.ack) msg.handle.ack();
-        trace('handled message: %j', msg);
-      });
+
+        trace('handled message with error: %j', msg);
+
+        if (isAck) return msg.handle.ack(cb);
+
+        else cb();
+      }
+    }, function (err) {
+      if (err) return (options.handleError || handleError).call(context, msg, err);
+
+      if (isAck) msg.handle.ack();
+
+      trace('handled message: %j', msg);
 
     });
 
+  }
+
+  bus[method].call(bus, queueName,
+                        { ack: isAck, routingKey: firstHandler.routingKey },
+                        handleIncomingMessage.bind(bus, pipeline));
+
+  if (pipeline.size === 1 || pipeline instanceof RoutingKeyPipeline) return;
+
+  pipeline.handlers.filter(function (h) { return h !== firstHandler; }).forEach(function (handler) {
+
+    if (handler.ack !== isAck) throw new Error('module.exports.ack for %s handlers do not match', firstHandler.queueName || firstHandler.routingKey);
+
+    if (pipeline.handlers.some(function (h) { return handler.routingKey !== h.routingKey; })) {
+      if (bus.pubsubqueues[queueName].listening) {
+        bus.pubsubqueues[queueName].listenChannel.bindQueue(queueName, bus.pubsubqueues[queueName].exchangeName, handler.routingKey);
+      } else {
+        bus.pubsubqueues[queueName].on('listening', function () {
+          bus.pubsubqueues[queueName].listenChannel.bindQueue(queueName, bus.pubsubqueues[queueName].exchangeName, handler.routingKey);
+        })
+      }
+
+    }
+
   });
+
+}
+
+module.exports = function (options) {
+
+  if ( ! options.bus) throw new Error('register-handlers requires in initialized bus variable');
+
+  prepareOptions(options);
+
+  Object.keys(options.pipelines).forEach(function (key) {
+
+    var pipeline = options.pipelines[key];
+
+    registerPipeline(options, pipeline);
+
+  });
+
+  return options;
 
 };

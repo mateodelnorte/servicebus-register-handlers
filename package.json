@@ -1,6 +1,6 @@
 {
   "name": "servicebus-register-handlers",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "module for registering all servicebus handlers in a folder, according to convention",
   "main": "index.js",
   "scripts": {
@@ -26,5 +26,10 @@
     "debug": "^2.2.0",
     "extend": "^3.0.0",
     "objectify-folder": "0.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5",
+    "should": "^8.2.1",
+    "sinon": "^1.17.3"
   }
 }
