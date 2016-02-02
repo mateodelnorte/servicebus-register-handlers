@@ -109,7 +109,7 @@ module.exports = function (options) {
 
       if (thisModule.length === 0) {
         warn('no handler registered to handle %j', msg);
-        if (firstOrOnlyMod.ack) msg.handle.reject();
+        if (firstOrOnlyMod.ack) msg.handle.ack();
         return;
       }
 

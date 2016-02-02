@@ -1,6 +1,6 @@
 {
   "name": "servicebus-register-handlers",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "module for registering all servicebus handlers in a folder, according to convention",
   "main": "index.js",
   "scripts": {
