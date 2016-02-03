@@ -9,9 +9,17 @@ var bus = {
 
 var mockbus = {
   listen: function (key, event) {
+    this.queues[key] = {
+      listening: false,
+      on: function () {}
+    };
     bus.listen(key, event);
   },
   subscribe: function (key, event) {
+    this.pubsubqueues[key] = {
+      listening: false,
+      on: function () {}
+    };
     bus.subscribe(key, event);
   },
   queues: {},

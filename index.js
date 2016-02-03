@@ -180,13 +180,15 @@ function registerPipeline (options, pipeline) {
 
     if (handler.ack !== isAck) throw new Error('module.exports.ack for %s handlers do not match', firstHandler.queueName || firstHandler.routingKey);
 
+    var queueType = method === 'subscribe' ? 'pubsubqueues' : 'queues';
+
     if (pipeline.handlers.some(function (h) { return handler.routingKey !== h.routingKey; })) {
-      if (bus.pubsubqueues[queueName].listening) {
-        bus.pubsubqueues[queueName].listenChannel.bindQueue(queueName, bus.pubsubqueues[queueName].exchangeName, handler.routingKey);
+      if (bus[queueType][queueName].listening) {
+        bus[queueType][queueName].listenChannel.bindQueue(queueName, bus[queueType][queueName].exchangeName, handler.routingKey);
       } else {
-        bus.pubsubqueues[queueName].on('listening', function () {
-          bus.pubsubqueues[queueName].listenChannel.bindQueue(queueName, bus.pubsubqueues[queueName].exchangeName, handler.routingKey);
-        })
+        bus[queueType][queueName].on('listening', function () {
+          bus[queueType][queueName].listenChannel.bindQueue(queueName, bus[queueType][queueName].exchangeName, handler.routingKey);
+        });
       }
 
     }
