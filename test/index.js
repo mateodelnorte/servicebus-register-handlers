@@ -33,13 +33,24 @@ describe('register-handlers', function () {
     var registered = registerHandlers({
       bus: mockbus,
       handlers: [ {
+        listen: function () {}
+      }]
+    });
+
+  });
+
+  it('should register simple subscribe', function () {
+
+    var registered = registerHandlers({
+      bus: mockbus,
+      handlers: [ {
         subscribe: function () {}
       }]
     });
 
   });
 
-  it.only('should register entire folder', function () {
+  it('should register entire folder', function () {
     var registered = registerHandlers({
       bus: mockbus,
       path: './test/support'
