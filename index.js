@@ -129,7 +129,7 @@ function registerPipeline (options, pipeline) {
 
     if (pipeline.size > 1) {
       handlers = pipeline.handlers.filter(function (handler) {
-        return handler.routingKey === msg.type ||
+        return (handler.routingKey !== undefined && msg.type.match(handler.routingKey)) ||
                (handler.type !== undefined && handler.type === msg.type) ||
                (handler.where !== undefined && handler.where && handler.where(msg));
       });
