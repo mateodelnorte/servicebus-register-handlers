@@ -40,7 +40,7 @@ function Handler (options) {
   this.ack = options.ack;
   this.listen = options.listen;
   this.queueName = options.queueName;
-  this.routingKey = options.routingKey || options.queueName;
+  this.routingKey = options.routingKey;
   this.subscribe = options.subscribe;
   this.type = options.type;
   this.where = options.where;
@@ -57,7 +57,7 @@ function addHandler (pipelines, handler) {
 }
 
 function handlerIsOrSharesListenQueue (handler) {
-  return handler.listen || (handler.subscribe && handler.queueName);
+  return handler.queueName !== undefined;
 };
 
 function prepareOptions (options) {
@@ -129,9 +129,9 @@ function registerPipeline (options, pipeline) {
 
     if (pipeline.size > 1) {
       handlers = pipeline.handlers.filter(function (handler) {
-        return (handler.routingKey !== undefined && msg.type.match(handler.routingKey)) ||
-               (handler.type !== undefined && handler.type === msg.type) ||
-               (handler.where !== undefined && handler.where && handler.where(msg));
+        return (handler.routingKey === undefined || (handler.routingKey !== undefined && msg.type.match(handler.routingKey))) &&
+               (handler.type === undefined || handler.type === msg.type) &&
+               (handler.where === undefined || handler.where && handler.where(msg));
       });
     } else {
       handlers = pipeline.handlers;
