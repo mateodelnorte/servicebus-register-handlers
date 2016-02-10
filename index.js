@@ -112,7 +112,7 @@ function registerPipeline (options, pipeline) {
   function handleError (msg, err) {
     debug('error handling message with cid ', msg.cid);
     debug(err.stack || err.message || err);
-    if (firstOrOnlyMod.ack) msg.handle.reject(function () {
+    if (firstHandler.ack) msg.handle.reject(function () {
       throw err;
     });
   }
