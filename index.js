@@ -164,6 +164,8 @@ function registerPipeline (options, pipeline) {
 
       if (isAck) msg.handle.ack();
 
+      if (options.onHandlerCompleted) options.onHandlerCompleted.call(context, msg, message);
+
       trace('handled message: %j', msg);
 
     });
