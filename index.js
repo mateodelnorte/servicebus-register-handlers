@@ -94,9 +94,6 @@ function registerPipeline (options, pipeline) {
   var isAck = firstHandler.ack;
   var isListen = firstHandler.listen !== undefined;
   var hasQueueNameSpecified = firstHandler.queueName !== undefined;
-  var hasRoutingKeySpecified = firstHandler.routingKey !== undefined;
-  var hasTypeSpecified = firstHandler.type !== undefined;
-  var hasWhereSpecified = firstHandler.where !== undefined;
 
   var method = (isListen) ? 'listen' : 'subscribe';
   var queueName = hasQueueNameSpecified ? firstHandler.queueName :
@@ -125,17 +122,11 @@ function registerPipeline (options, pipeline) {
       correlationId: message.properties.correlationId
     };
 
-    var handlers;
-
-    if (pipeline.size > 1) {
-      handlers = pipeline.handlers.filter(function (handler) {
-        return (handler.routingKey === undefined || (handler.routingKey !== undefined && msg.type.match(handler.routingKey))) &&
-               (handler.type === undefined || handler.type === msg.type) &&
-               (handler.where === undefined || handler.where && handler.where(msg));
-      });
-    } else {
-      handlers = pipeline.handlers;
-    }
+    var handlers = pipeline.handlers.filter(function (handler) {
+      return (handler.routingKey === undefined || (handler.routingKey !== undefined && msg.type.match(handler.routingKey))) &&
+             (handler.type === undefined || handler.type === msg.type) &&
+             (handler.where === undefined || handler.where && handler.where(msg));
+    });
 
     if (handlers.length === 0) {
       warn('no handler registered to handle %j', msg);
