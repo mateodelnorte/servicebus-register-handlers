@@ -1,3 +1,4 @@
+var amqpMatch = require('amqp-match');
 var async = require('async');
 var debug = require('debug')('register-handlers');
 var extend = require('extend');
@@ -123,7 +124,7 @@ function registerPipeline (options, pipeline) {
     };
 
     var handlers = pipeline.handlers.filter(function (handler) {
-      return (handler.routingKey === undefined || (handler.routingKey !== undefined && msg.type.match(handler.routingKey))) &&
+      return (handler.routingKey === undefined || (handler.routingKey !== undefined && amqpMatch(message.fields.routingKey, handler.routingKey))) &&
              (handler.type === undefined || handler.type === msg.type) &&
              (handler.where === undefined || handler.where && handler.where(msg));
     });
