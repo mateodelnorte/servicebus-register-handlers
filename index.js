@@ -164,7 +164,7 @@ function registerPipeline (options, pipeline) {
 
   }
 
-  bus[method].call(bus, queueName,
+  var obj = bus[method].call(bus, queueName,
                         { ack: isAck, routingKey: firstHandler.routingKey },
                         handleIncomingMessage.bind(bus, pipeline));
 
@@ -176,16 +176,24 @@ function registerPipeline (options, pipeline) {
 
     var queueType = method === 'subscribe' ? 'pubsubqueues' : 'queues';
 
-    if (pipeline.handlers.some(function (h) { return handler.routingKey !== h.routingKey; })) {
-      if (bus[queueType][queueName].listening) {
-        bus[queueType][queueName].listenChannel.bindQueue(queueName, bus[queueType][queueName].exchangeName, handler.routingKey);
-      } else {
-        bus[queueType][queueName].on('listening', function () {
-          bus[queueType][queueName].listenChannel.bindQueue(queueName, bus[queueType][queueName].exchangeName, handler.routingKey);
-        });
+      function bindHandler () {
+
+        if (pipeline.handlers.some(function (h) { return handler.routingKey !== h.routingKey; })) {
+
+          if (bus[queueType][queueName].listening) {
+            bus[queueType][queueName].listenChannel.bindQueue(queueName, bus.exchangeName, handler.routingKey);
+          } else {
+            bus[queueType][queueName].on('listening', function () {
+              bus[queueType][queueName].listenChannel.bindQueue(queueName, bus.exchangeName, handler.routingKey);
+            });
+          }
+
+        }
+
       }
 
-    }
+      if (bus.initialized) bindHandler();
+      else bus.on('ready', bindHandler);
 
   });
 

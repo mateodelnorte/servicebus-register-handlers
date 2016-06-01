@@ -15,6 +15,7 @@ var mockbus = {
     };
     bus.listen(key, event);
   },
+  on: function () {},
   subscribe: function (key, event) {
     this.pubsubqueues[key] = {
       listening: false,
@@ -55,6 +56,15 @@ describe('register-handlers', function () {
       bus: mockbus,
       path: './test/support'
     });
+
+    registered.pipelines.should.have.property('one');
+    registered.pipelines['one'].should.have.property('size', 2);
+
+    registered.pipelines.should.have.property('two.*');
+    registered.pipelines['two.*'].should.have.property('size', 1);
+
+    registered.pipelines.should.have.property('four-five');
+    registered.pipelines['four-five'].should.have.property('size', 2);
 
     // console.log(require('util').inspect(registered, null, Infinity))
   });
