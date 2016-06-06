@@ -181,10 +181,10 @@ function registerPipeline (options, pipeline) {
         if (pipeline.handlers.some(function (h) { return handler.routingKey !== h.routingKey; })) {
 
           if (bus[queueType][queueName].listening) {
-            bus[queueType][queueName].listenChannel.bindQueue(queueName, bus.exchangeName, handler.routingKey);
+            bus[queueType][queueName].listenChannel.bindQueue(queueName, bus[queueType][queueName].exchangeName, handler.routingKey);
           } else {
             bus[queueType][queueName].on('listening', function () {
-              bus[queueType][queueName].listenChannel.bindQueue(queueName, bus.exchangeName, handler.routingKey);
+              bus[queueType][queueName].listenChannel.bindQueue(queueName, bus[queueType][queueName].exchangeName, handler.routingKey);
             });
           }
 
