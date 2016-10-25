@@ -94,13 +94,7 @@ function registerPipeline (options, pipeline) {
 
   var isAck = firstHandler.ack;
   var isListen = firstHandler.listen !== undefined;
-  var hasQueueNameSpecified = firstHandler.queueName !== undefined;
-
   var method = (isListen) ? 'listen' : 'subscribe';
-  var queueName = hasQueueNameSpecified ? firstHandler.queueName :
-        options.queuePrefix !== undefined ? util.format('%s-', queueName) : firstHandler.routingKey;
-
-  var queueName = firstHandler.queueName;
 
   var queueName = ! isListen ?
     (firstHandler.queueName) ? firstHandler.queueName :
@@ -118,7 +112,7 @@ function registerPipeline (options, pipeline) {
   function handleIncomingMessage (pipeline, msg, message) {
 
     var context = {
-      queueName: message.fields.queueName,
+      queueName: queueName,
       routingKey: message.fields.routingKey,
       correlationId: message.properties.correlationId
     };
