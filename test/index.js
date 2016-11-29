@@ -66,6 +66,26 @@ describe('register-handlers', function () {
     registered.pipelines.should.have.property('four-five');
     registered.pipelines['four-five'].should.have.property('size', 2);
 
-    // console.log(require('util').inspect(registered, null, Infinity))
   });
+
+  it('should register globbed folders', function () {
+    var registered = registerHandlers({
+      bus: mockbus,
+      path: './test/support/**/*'
+    });
+
+    registered.pipelines.should.have.property('one');
+    registered.pipelines['one'].should.have.property('size', 2);
+
+    registered.pipelines.should.have.property('two.*');
+    registered.pipelines['two.*'].should.have.property('size', 1);
+
+    registered.pipelines.should.have.property('four-five');
+    registered.pipelines['four-five'].should.have.property('size', 2);
+
+    registered.pipelines.should.have.property('six');
+    registered.pipelines['six'].should.have.property('size', 1);
+
+  });
+  
 });
