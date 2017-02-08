@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mateodelnorte/servicebus-register-handlers.svg?branch=master)](https://travis-ci.org/mateodelnorte/servicebus-register-handlers)
+
 # servicebus-register-handlers
 
 servicebus-register-handlers provides convention based message/event handler definition for distributed services using servicebus. 
