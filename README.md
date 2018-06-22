@@ -66,7 +66,7 @@ module.exports.subscribe = function (event, cb) {
 
 ## Command/Event API
 
-Servicebus is often using in CQRS systems, so a simplified API is exposed to
+Servicebus is often used in CQRS systems, so a simplified API is exposed to
 simplify it's usage for this pattern.
 
 When using either `command` or `event` keys as exports, the option `ack` will
