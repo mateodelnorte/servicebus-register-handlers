@@ -77,6 +77,8 @@ automatically be set to true.
 You may specify you command handlers by simply exporting a `command` property
 and a `listen` event.
 
+When you do so a `queueName` will be implied from the command name, and `ack` will be set to `true`
+
 ```
 module.exports.command = 'domain.command';
 
@@ -101,6 +103,8 @@ export const listen = function (command, cb) {
 
 You may specify you event handlers by simply exporting a `event` property
 and a `subscribe` event.
+
+When you do so a `routingKey` will be implied from the event name, and `ack` will be set to `true`
 
 ```
 module.exports.event = 'domain.event';
