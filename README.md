@@ -127,8 +127,7 @@ export const subscribe = function (event, cb) {
 MJS modules have recently been introduced to the Javascript ecosystem, however, you
 may not use a combination of both. When using MJS, it's necessary to use dynamic imports.
 
-This will be done automatically for you when you specify the option `modules` to be `true`
-in the initial registerHandlers call.
+This will be done automatically for you when you specify the option `modules` to be `true` in the initial registerHandlers call.
 
 ```
 import path from 'path'
