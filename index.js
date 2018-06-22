@@ -68,6 +68,10 @@ function prepareOptions (options) {
   if ( ! options.handlers && ! options.path) throw new Error('register-handlers requires a folder path or object of required modules');
 
   if (options.path) {
+
+    if (options.modules) {
+      objectifyFolder = require('objectify-folder/modules')
+    } 
     var i = 0;
     var handlers = objectifyFolder({
       fn: function (mod, result) {
@@ -76,7 +80,7 @@ function prepareOptions (options) {
       },
       path: options.path
     });
-
+  
   } else if (options.handlers) {
     options.handlers.forEach(function (handler) {
       addHandler(options.pipelines, handler);
