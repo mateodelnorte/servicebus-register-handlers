@@ -102,5 +102,35 @@ describe('register-handlers', function () {
     registered.pipelines['domain.event'].should.have.property('routingKey', 'domain.event');
     registered.pipelines['domain.event'].should.have.property('size', 1);
   });
+
+  it('Handler constructor options', () => {
+    let routingKeyHandler = new registerHandlers.Handler({
+      routingKey: 'r.k',
+      subscribe: function(){}
+    })
+    routingKeyHandler.should.have.property('routingKey', 'r.k')
+    routingKeyHandler.should.have.property('ack', undefined)
+
+    let eventHandler = new registerHandlers.Handler({
+      event: 'r.k',
+      subscribe: function(){}
+    })
+    eventHandler.should.have.property('routingKey', 'r.k')
+    eventHandler.should.have.property('ack', true)
+
+    let queueNameHandler = new registerHandlers.Handler({
+      queueName: 'q.n',
+      listen: function(){}
+    })
+    queueNameHandler.should.have.property('queueName', 'q.n')
+    queueNameHandler.should.have.property('ack', undefined)
+
+    let commandHandler = new registerHandlers.Handler({
+      command: 'q.n',
+      listen: function(){}
+    })
+    commandHandler.should.have.property('queueName', 'q.n')
+    commandHandler.should.have.property('ack', true)
+  })
   
 });

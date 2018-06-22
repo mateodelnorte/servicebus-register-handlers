@@ -38,19 +38,13 @@ function Handler (options) {
   if (options.subscribe && ! (options.routingKey || options.event)) throw new Error('module.exports.subscribe must be accompanied by a module.exports.routingKey specification.')
   if (options.listen && options.subscribe) throw new Error('module.exports.listen and module.exports.subscribe cannot both be specified on a handler.')
 
-  this.ack = options.ack;
+  this.ack = options.ack ? options.ack : (options.command || options.event) ? true : undefined;
   this.listen = options.listen;
   this.queueName = options.queueName || options.command;
   this.routingKey = options.routingKey || options.event;
   this.subscribe = options.subscribe;
   this.type = options.type;
   this.where = options.where;
-
-  // if using the "command" and "event" simplified API
-  // default ack to true
-  if (options.command || options.event) {
-    this.ack = this.ack || true
-  }
 }
 
 function addHandler (pipelines, handler) {
@@ -226,3 +220,5 @@ module.exports = function (options) {
   return options;
 
 };
+
+module.exports.Handler = Handler;
