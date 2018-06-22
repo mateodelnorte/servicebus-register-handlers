@@ -34,17 +34,23 @@ RoutingKeyPipeline.prototype.push = function (handler) {
 function Handler (options) {
 
   if (options.where && typeof options.where !== 'function') throw new Error('module.exports.where must be of type function and return a boolean statement');
-  if (options.listen && ! options.queueName) throw new Error('module.exports.listen must be accompanied by a module.exports.queueName specification.')
-  if (options.subscribe && ! options.routingKey) throw new Error('module.exports.subscribe must be accompanied by a module.exports.routingKey specification.')
+  if (options.listen && ! (options.queueName || options.command)) throw new Error('module.exports.listen must be accompanied by a module.exports.queueName specification.')
+  if (options.subscribe && ! (options.routingKey || options.event)) throw new Error('module.exports.subscribe must be accompanied by a module.exports.routingKey specification.')
   if (options.listen && options.subscribe) throw new Error('module.exports.listen and module.exports.subscribe cannot both be specified on a handler.')
 
   this.ack = options.ack;
   this.listen = options.listen;
-  this.queueName = options.queueName;
-  this.routingKey = options.routingKey;
+  this.queueName = options.queueName || options.command;
+  this.routingKey = options.routingKey || options.event;
   this.subscribe = options.subscribe;
   this.type = options.type;
   this.where = options.where;
+
+  // if using the "command" and "event" simplified API
+  // default ack to true
+  if (options.command || options.event) {
+    this.ack = this.ack || true
+  }
 }
 
 function addHandler (pipelines, handler) {
@@ -75,7 +81,7 @@ function prepareOptions (options) {
     var i = 0;
     var handlers = objectifyFolder({
       fn: function (mod, result) {
-        if ( ! (mod.queueName || mod.routingKey) || ! (mod.listen || mod.subscribe)) return;
+        if ( ! (mod.queueName || mod.routingKey || mod.command || mod.event ) || ! (mod.listen || mod.subscribe)) return;
         addHandler(options.pipelines, new Handler(mod));
       },
       path: options.path
