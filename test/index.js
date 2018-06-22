@@ -104,28 +104,28 @@ describe('register-handlers', function () {
   });
 
   it('Handler constructor options', () => {
-    let routingKeyHandler = new registerHandlers.Handler({
+    var routingKeyHandler = new registerHandlers.Handler({
       routingKey: 'r.k',
       subscribe: function(){}
     })
     routingKeyHandler.should.have.property('routingKey', 'r.k')
     routingKeyHandler.should.have.property('ack', undefined)
 
-    let eventHandler = new registerHandlers.Handler({
+    var eventHandler = new registerHandlers.Handler({
       event: 'r.k',
       subscribe: function(){}
     })
     eventHandler.should.have.property('routingKey', 'r.k')
     eventHandler.should.have.property('ack', true)
 
-    let queueNameHandler = new registerHandlers.Handler({
+    var queueNameHandler = new registerHandlers.Handler({
       queueName: 'q.n',
       listen: function(){}
     })
     queueNameHandler.should.have.property('queueName', 'q.n')
     queueNameHandler.should.have.property('ack', undefined)
 
-    let commandHandler = new registerHandlers.Handler({
+    var commandHandler = new registerHandlers.Handler({
       command: 'q.n',
       listen: function(){}
     })
