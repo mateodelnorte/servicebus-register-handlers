@@ -87,5 +87,50 @@ describe('register-handlers', function () {
     registered.pipelines['six'].should.have.property('size', 1);
 
   });
+
+  it('simplified api should map to correct values and default ack to true', function () {
+    var registered = registerHandlers({
+      bus: mockbus,
+      path: './test/support'
+    });
+
+    registered.pipelines.should.have.property('domain.command');
+    registered.pipelines['domain.command'].should.have.property('queueName', 'domain.command');
+    registered.pipelines['domain.command'].should.have.property('size', 1);
+
+    registered.pipelines.should.have.property('domain.event');
+    registered.pipelines['domain.event'].should.have.property('routingKey', 'domain.event');
+    registered.pipelines['domain.event'].should.have.property('size', 1);
+  });
+
+  it('Handler constructor options', () => {
+    var routingKeyHandler = new registerHandlers.Handler({
+      routingKey: 'r.k',
+      subscribe: function(){}
+    })
+    routingKeyHandler.should.have.property('routingKey', 'r.k')
+    routingKeyHandler.should.have.property('ack', undefined)
+
+    var eventHandler = new registerHandlers.Handler({
+      event: 'r.k',
+      subscribe: function(){}
+    })
+    eventHandler.should.have.property('routingKey', 'r.k')
+    eventHandler.should.have.property('ack', true)
+
+    var queueNameHandler = new registerHandlers.Handler({
+      queueName: 'q.n',
+      listen: function(){}
+    })
+    queueNameHandler.should.have.property('queueName', 'q.n')
+    queueNameHandler.should.have.property('ack', undefined)
+
+    var commandHandler = new registerHandlers.Handler({
+      command: 'q.n',
+      listen: function(){}
+    })
+    commandHandler.should.have.property('queueName', 'q.n')
+    commandHandler.should.have.property('ack', true)
+  })
   
 });

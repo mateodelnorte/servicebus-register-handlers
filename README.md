@@ -63,3 +63,98 @@ module.exports.subscribe = function (event, cb) {
   cb(); 
 };
 ```
+
+## Command/Event API
+
+Servicebus is often used in CQRS systems, so a simplified API is exposed to
+simplify it's usage for this pattern.
+
+When using either `command` or `event` keys as exports, the option `ack` will
+automatically be set to true.
+
+### Commands
+
+You may specify you command handlers by simply exporting a `command` property
+and a `listen` event.
+
+When you do so a `queueName` will be implied from the command name, and `ack` will be set to `true`
+
+```
+module.exports.command = 'domain.command';
+
+module.exports.listen = function (command, cb) {
+  // no op
+}
+```
+
+With modules:
+```
+export const command = 'domain.command'
+
+export const listen = function (command, cb) {
+  const { id, product } = command.data
+  // do something
+  cb()
+}
+
+```
+
+### Events
+
+You may specify you event handlers by simply exporting a `event` property
+and a `subscribe` event.
+
+When you do so a `routingKey` will be implied from the event name, and `ack` will be set to `true`
+
+```
+module.exports.event = 'domain.event';
+
+module.exports.subscribe = function (event, cb) {
+  // no op
+}
+```
+
+With modules:
+```
+export const event = 'domain.event'
+
+export const subscribe = function (event, cb) {
+  const { id, product } = event.data
+  // do something
+  cb()
+}
+
+```
+
+## Module support
+
+MJS modules have recently been introduced to the Javascript ecosystem, however, you
+may not use a combination of both. When using MJS, it's necessary to use dynamic imports.
+
+This will be done automatically for you when you specify the option `modules` to be `true` in the initial registerHandlers call.
+
+```
+import path from 'path'
+import log from 'llog'
+import errortrap from 'errortrap'
+import registerHandlers from 'servicebus-register-handlers'
+import sbc from 'servicebus-bus-common';
+import { config } from '../config.mjs'
+import server from 'express-api-common'
+
+errortrap()
+
+const bus = sbc.makeBus(config)
+const { queuePrefix } = config
+
+registerHandlers({
+  bus,
+  path:  path.resolve(process.cwd(), 'handlers'),
+  modules: true,
+  queuePrefix
+})
+
+server.start()
+
+log.info('service is running')
+```
