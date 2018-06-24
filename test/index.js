@@ -1,4 +1,5 @@
 require('should');
+var debug = require('debug')('register-handlers')
 var registerHandlers = require('../index');
 var sinon = require('sinon');
 
@@ -26,6 +27,22 @@ var mockbus = {
   queues: {},
   pubsubqueues: {},
   correlationId: function () {}
+}
+
+var mockMessage = {
+  fields: {
+    queueName: 'queue',
+    routingKey: 'r.k'
+  },
+  properties: {
+    correlationId: '1'
+  }
+}
+
+var mockMsg = {
+  handle: {
+    ack: function () {}
+  }
 }
 
 describe('register-handlers', function () {
@@ -91,7 +108,7 @@ describe('register-handlers', function () {
   it('simplified api should map to correct values and default ack to true', function () {
     var registered = registerHandlers({
       bus: mockbus,
-      path: './test/support'
+      path: './test/support/api'
     });
 
     registered.pipelines.should.have.property('domain.command');
@@ -131,6 +148,24 @@ describe('register-handlers', function () {
     })
     commandHandler.should.have.property('queueName', 'q.n')
     commandHandler.should.have.property('ack', true)
+  })
+
+  it('exposes the bus, queueName, routingKey, and correlationId to the handler', (done) => {
+    var registered = registerHandlers({
+      bus: mockbus,
+      handlers: [ {
+        listen: function () {
+          this.should.have.property('bus')
+          this.should.have.property('queueName', mockMessage.fields.queueName)
+          this.should.have.property('routingKey', mockMessage.fields.routingKey)
+          this.should.have.property('correlationId', mockMessage.properties.correlationId)
+          done()
+        }
+      }]
+    });
+
+    // handleIncomingMessage calls listen when bound to a context
+    registered.pipelines[undefined].handleIncomingMessage(mockMsg, mockMessage)
   })
   
 });

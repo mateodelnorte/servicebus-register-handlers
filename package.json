@@ -4,7 +4,7 @@
   "description": "module for registering all servicebus handlers in a folder, according to convention",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -R spec"
+    "test": "NODE_ENV=test mocha -R spec"
   },
   "repository": {
     "type": "git",
