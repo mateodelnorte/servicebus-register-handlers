@@ -124,7 +124,8 @@ function registerPipeline (options, pipeline) {
     var context = {
       queueName: message.fields.queueName,
       routingKey: message.fields.routingKey,
-      correlationId: message.properties.correlationId
+      correlationId: message.properties.correlationId,
+      bus: bus
     };
 
     var handlers = pipeline.handlers.filter(function (handler) {
@@ -171,6 +172,10 @@ function registerPipeline (options, pipeline) {
   var obj = bus[method].call(bus, queueName,
                         { ack: isAck, routingKey: firstHandler.routingKey },
                         handleIncomingMessage.bind(bus, pipeline));
+
+  if (process.env.NODE_ENV === 'test') {
+    pipeline.handleIncomingMessage = handleIncomingMessage.bind(bus, pipeline)
+  }
 
   if (pipeline.size === 1 || pipeline instanceof RoutingKeyPipeline) return;
 
