@@ -1,5 +1,4 @@
 require('should');
-var debug = require('debug')('register-handlers')
 var registerHandlers = require('../index');
 var sinon = require('sinon');
 
