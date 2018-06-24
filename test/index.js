@@ -26,7 +26,10 @@ var mockbus = {
   },
   queues: {},
   pubsubqueues: {},
-  correlationId: function () {}
+  correlationId: function () {},
+  publish: function (key, event, done) {
+    done()
+  }
 }
 
 var mockMessage = {
@@ -150,7 +153,7 @@ describe('register-handlers', function () {
     commandHandler.should.have.property('ack', true)
   })
 
-  it('exposes the bus, queueName, routingKey, and correlationId to the handler', (done) => {
+  it('exposes the bus, queueName, routingKey, and correlationId to the handler, and can call bus.publish', (done) => {
     var registered = registerHandlers({
       bus: mockbus,
       handlers: [ {
@@ -159,7 +162,8 @@ describe('register-handlers', function () {
           this.should.have.property('queueName', mockMessage.fields.queueName)
           this.should.have.property('routingKey', mockMessage.fields.routingKey)
           this.should.have.property('correlationId', mockMessage.properties.correlationId)
-          done()
+          
+          this.bus.publish(null,null,done)
         }
       }]
     });
