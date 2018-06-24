@@ -162,7 +162,7 @@ describe('register-handlers', function () {
           this.should.have.property('queueName', mockMessage.fields.queueName)
           this.should.have.property('routingKey', mockMessage.fields.routingKey)
           this.should.have.property('correlationId', mockMessage.properties.correlationId)
-          
+
           this.bus.publish(null,null,done)
         }
       }]
@@ -171,5 +171,5 @@ describe('register-handlers', function () {
     // handleIncomingMessage calls listen when bound to a context
     registered.pipelines[undefined].handleIncomingMessage(mockMsg, mockMessage)
   })
-  
+
 });

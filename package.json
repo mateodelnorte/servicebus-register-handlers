@@ -1,10 +1,10 @@
 {
   "name": "servicebus-register-handlers",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "module for registering all servicebus handlers in a folder, according to convention",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha -R spec"
+    "test": "NODE_ENV=test ./node_modules/.bin/mocha test -R spec --recursive"
   },
   "repository": {
     "type": "git",
