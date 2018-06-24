@@ -28,7 +28,8 @@ var mockbus = {
   pubsubqueues: {},
   correlationId: function () {},
   publish: function (key, event, done) {
-    done()
+    done && done()
+    // lol
   }
 }
 
