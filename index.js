@@ -48,6 +48,8 @@ function Handler (options) {
 }
 
 function addHandler (pipelines, handler) {
+  debug('adding Handler - pipelines', pipelines)
+  debug('adding Handler - handler', handler)
   if (handlerIsOrSharesListenQueue(handler)) {
     if ( ! pipelines[handler.queueName]) pipelines[handler.queueName] = new QueuePipeline({ queueName: handler.queueName });
     pipelines[handler.queueName].push(handler);
@@ -69,9 +71,6 @@ function prepareOptions (options) {
 
   if (options.path) {
 
-    if (options.modules) {
-      objectifyFolder = require('objectify-folder/modules')
-    } 
     var i = 0;
     var handlers = objectifyFolder({
       fn: function (mod, result) {
@@ -92,24 +91,29 @@ function prepareOptions (options) {
 
 function registerPipeline (options, pipeline) {
 
+  debug('registering pipeline', pipeline)
+
   var bus = options.bus;
 
   var firstHandler = pipeline.handlers[0];
 
   var isAck = firstHandler.ack;
   var isListen = firstHandler.listen !== undefined;
-  var hasQueueNameSpecified = firstHandler.queueName !== undefined;
+  // var hasQueueNameSpecified = firstHandler.queueName !== undefined;
 
   var method = (isListen) ? 'listen' : 'subscribe';
-  var queueName = hasQueueNameSpecified ? firstHandler.queueName :
-        options.queuePrefix !== undefined ? util.format('%s-', queueName) : firstHandler.routingKey;
+  // var queueName = hasQueueNameSpecified ? firstHandler.queueName :
+  //       options.queuePrefix !== undefined ? util.format('%s-', queueName) : firstHandler.routingKey;
 
-  var queueName = firstHandler.queueName;
+  // var queueName = firstHandler.queueName;
 
   var queueName = ! isListen ?
     (firstHandler.queueName) ? firstHandler.queueName :
       (options.queuePrefix !== undefined ? util.format(options.queuePrefix + '-%s', firstHandler.routingKey) : firstHandler.routingKey) :
         firstHandler.routingKey || firstHandler.queueName;
+
+  debug('registering pipeline: queuename', queueName)
+  debug('registering pipeline: method', method)
 
   function handleError (msg, err) {
     debug('error handling message with cid ', msg.cid);
@@ -212,17 +216,53 @@ module.exports = function (options) {
 
   if ( ! options.bus) throw new Error('register-handlers requires in initialized bus variable');
 
-  prepareOptions(options);
+  if (! options.modules) {
 
-  Object.keys(options.pipelines).forEach(function (key) {
+    prepareOptions(options);
 
-    var pipeline = options.pipelines[key];
+    Object.keys(options.pipelines).forEach(function (key) {
 
-    registerPipeline(options, pipeline);
+      var pipeline = options.pipelines[key];
 
-  });
+      registerPipeline(options, pipeline);
 
-  return options;
+    });
+
+    return options;
+
+  } else {
+
+    return new Promise((resolve, reject) => {
+
+      objectifyFolder = require('objectify-folder/modules')
+      options.pipelines = {}
+
+      objectifyFolder({
+        fn: function (mod, result) {
+          debug('imported module', mod)
+          if ( ! (mod.queueName || mod.routingKey || mod.command || mod.event ) || ! (mod.listen || mod.subscribe)) return;
+          addHandler(options.pipelines, new Handler(mod));
+        },
+        path: options.path
+      }).then((modules) => {
+
+        debug('objectified folder - options', options)
+
+        Object.keys(options.pipelines).forEach(function (key) {
+
+          let pipeline = options.pipelines[key];
+
+          registerPipeline(options, pipeline);
+
+        });
+
+        resolve(options)
+
+      })
+
+    })
+
+  }
 
 };
 

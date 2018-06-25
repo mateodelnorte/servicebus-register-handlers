@@ -6,5 +6,6 @@ test:
 test-debug:
 	DEBUG=$(DEBUG) \
 	npm test
+	node --experimental-modules ./test-mjs/test.mjs
 
 .PHONY: test
