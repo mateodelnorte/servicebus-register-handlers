@@ -79,7 +79,7 @@ function prepareOptions (options) {
       },
       path: options.path
     });
-  
+
   } else if (options.handlers) {
     options.handlers.forEach(function (handler) {
       addHandler(options.pipelines, handler);
@@ -250,7 +250,7 @@ module.exports = function (options) {
 
         Object.keys(options.pipelines).forEach(function (key) {
 
-          let pipeline = options.pipelines[key];
+          var pipeline = options.pipelines[key];
 
           registerPipeline(options, pipeline);
 
