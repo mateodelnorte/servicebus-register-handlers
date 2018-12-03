@@ -23,14 +23,14 @@
   "homepage": "https://github.com/mateodelnorte/servicebus-register-handlers",
   "dependencies": {
     "amqp-match": "0.0.0",
-    "async": "^1.4.2",
-    "debug": "^2.2.0",
+    "async": "^2.6.1",
+    "debug": "^4.1.0",
     "extend": "^3.0.0",
     "objectify-folder": "^1.1.4"
   },
   "devDependencies": {
     "mocha": "^5.2.0",
-    "should": "^8.2.1",
-    "sinon": "^1.17.3"
+    "should": "^13.2.3",
+    "sinon": "^7.1.1"
   }
 }
