@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mateodelnorte/servicebus-register-handlers.svg?branch=master)](https://travis-ci.org/mateodelnorte/servicebus-register-handlers)
+[![Build Status](https://travis-ci.org/mateodelnorte/servicebus-register-handlers.svg?branch=master)](https://travis-ci.org/mateodelnorte/servicebus-register-handlers) [![Greenkeeper badge](https://badges.greenkeeper.io/mateodelnorte/servicebus-register-handlers.svg)](https://greenkeeper.io/)
 
 # servicebus-register-handlers
 
