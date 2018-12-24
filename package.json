@@ -28,8 +28,8 @@
     "objectify-folder": "^1.1.4"
   },
   "devDependencies": {
-    "mocha": "^5.2.0",
-    "should": "^8.2.1",
-    "sinon": "^1.17.3"
+    "mocha": "5.2.0",
+    "should": "8.4.0",
+    "sinon": "1.17.7"
   }
 }
