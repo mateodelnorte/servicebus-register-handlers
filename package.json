@@ -30,6 +30,6 @@
   "devDependencies": {
     "mocha": "6.1.1",
     "should": "13.2.3",
-    "sinon": "7.2.2"
+    "sinon": "7.5.0"
   }
 }
