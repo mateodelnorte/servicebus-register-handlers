@@ -28,7 +28,7 @@
     "objectify-folder": "^1.1.4"
   },
   "devDependencies": {
-    "mocha": "6.1.1",
+    "mocha": "6.2.2",
     "should": "13.2.3",
     "sinon": "7.2.2"
   }
